@@ -71,6 +71,39 @@ leaves(Y, [leaf|L]):-
    succ(X, Y),
    leaves(X, L).
 
+:- [diagnosis].
+
+hittingTree(leaf(L)).
+hittingTree(node([X], L)):-
+   hittingTree(X).
+hittingTree(node([X|Y], L)):-
+   hittingTree(X),
+   hittingTree(node(Y, L)).
+
+deleteList(COMP, [], COMP).
+deleteList(COMP, [X|Y], COMPSMALL):-
+   delete2(COMP, X, COMP2),
+   deleteList(COMP2, Y, COMPSMALL).
+
+% func([], LABEL, leaf(LABEL)).
+% func([X|Y], LABEL, node(HI,LABEL)):-
+%   makeHittingTree.
+
+
+
+makeHittingTree(SD, COMP, OBS, node([leaf(UNION)], LABEL), [CS]):-
+   union2(LABEL, [CS], UNION), % UNION = [[stuff]]
+   deleteList(COMP, UNION, COMPSMALL),
+   tp(SD, COMPSMALL, OBS, [], []).
+makeHittingTree(SD, COMP, OBS, node([node(TREE,UNION)], LABEL), [CS]):-
+   union2(LABEL, [CS], UNION),
+   deleteList(COMP, UNION, COMPSMALL),
+   tp(SD, COMPSMALL, OBS, [], CSRESULT),
+   makeHittingTree(SD, COMP, OBS, TREE, CSRESULT).
+
+
+
+
 
 
 

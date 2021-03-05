@@ -136,7 +136,6 @@ dnf(Lit,Lit).
 %
 %  Example: mat(((p, q ; p, ~ q) ; ~ p, q ; ~ p, ~ q),Matrix).
 %           Matrix = [[p, q], [p, -(q)], [-(p), q], [-(p), -(q)]]
-
 mat((A;B),M) :- !, mat(A,MA), mat(B,MB), append(MA,MB,M).
 mat((A,B),M) :- !, (mat(A,[CA]),mat(B,[CB]) -> union2(CA,CB,M);M=[]).
 mat(~Lit,[[-Lit]]) :- !.
