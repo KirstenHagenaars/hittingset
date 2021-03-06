@@ -80,6 +80,7 @@ hittingTree(node([X|Y], L)):-
    hittingTree(X),
    hittingTree(node(Y, L)).
 
+% This function has been replaced by subtract, can be deleted
 deleteList(COMP, [], COMP).
 deleteList(COMP, [X|Y], COMPSMALL):-
    delete2(COMP, X, COMP2),
@@ -89,19 +90,49 @@ deleteList(COMP, [X|Y], COMPSMALL):-
 % func([X|Y], LABEL, node(HI,LABEL)):-
 %   makeHittingTree.
 
+%========== Suggestion ============
+%  makeHittingTree(+SD,+COMP, +OBS, -TREE)  
+%             -  Determines a hitting tree for the diagnostic problem (SD,COMP,OBS).
 
+% We put UNION as HS since this is subtracted in tp
+% Do we need the definition of hittingTree? I think its implicitly defined by makeHittingTree
+
+makeChildren(SD, COMP, OBS, LABEL, []):-
+   tp(SD, COMP, OBS, LABEL, []).
+
+makeChildren(SD, COMP, OBS, LABEL, CHILDREN):-
+   % Remove label of parent and generate CS
+   tp(SD, COMP, OBS, LABEL, CS),
+   % TODO: call makeHittingTree for each element (el) of CS, where that element is added to the label
+   % for this we need to know whether this child is a leaf or a node, which we dont. 
+   % Prolog might figure it out if we give both options: makeHittingTree(SD, COMP, OBS, leaf(LABEL+el)); makeHittingTree(SD, COMP, OBS, node(A,LABEL+el))
+   .
+   
+
+makeHittingTree(SD, COMP, OBS, leaf(LABEL)):-
+   makeChildren(SD, COMP, OBS, LABEL, []).
+
+makeHittingTree(SD, COMP, OBS, node(CHILDREN, LABEL)):-
+   makeChildren(SD, COMP, OBS, LABEL, CHILDREN).
+
+%====================================
 
 makeHittingTree(SD, COMP, OBS, node([leaf(UNION)], LABEL), [CS]):-
-   union2(LABEL, [CS], UNION), % UNION = [[stuff]]
-   deleteList(COMP, UNION, COMPSMALL),
+   union(LABEL, [CS], UNION), 
+   subtract(COMP, UNION, COMPSMALL),
    tp(SD, COMPSMALL, OBS, [], []).
 makeHittingTree(SD, COMP, OBS, node([node(TREE,UNION)], LABEL), [CS]):-
-   union2(LABEL, [CS], UNION),
-   deleteList(COMP, UNION, COMPSMALL),
+   union(LABEL, [CS], UNION),
+   subtract(COMP, UNION, COMPSMALL),
    tp(SD, COMPSMALL, OBS, [], CSRESULT),
    makeHittingTree(SD, COMP, OBS, TREE, CSRESULT).
 
 
+%  gatherDiagnoses(+TREE, -D)  
+%             -  Determines a list of diagnoses D from hittingTree TREE
+
+%  getMinimalDiagnoses(+D, -MD)  
+%             -  Determines a list of minimal diagnoses MD from list of diagnoses D
 
 
 
