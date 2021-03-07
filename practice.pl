@@ -80,52 +80,33 @@ hittingTree(node([X|Y], L)):-
    hittingTree(X),
    hittingTree(node(Y, L)).
 
-% This function has been replaced by subtract, can be deleted
-deleteList(COMP, [], COMP).
-deleteList(COMP, [X|Y], COMPSMALL):-
-   delete2(COMP, X, COMP2),
-   deleteList(COMP2, Y, COMPSMALL).
 
-% func([], LABEL, leaf(LABEL)).
-% func([X|Y], LABEL, node(HI,LABEL)):-
-%   makeHittingTree.
+% makeChildren(+SD, +COMP, +OBS, +LABEL, +CS, -CHILDREN)
+%             - Determines the children for a given diagnostic problem, label and conflict set.
+makeChildren(SD, COMP, OBS, LABEL, [EL], [CHILD]):-
+   union(LABEL, [EL], NEWLABEL),
+   makeHittingTree(SD, COMP, OBS, NEWLABEL, CHILD).
 
-%========== Suggestion ============
-%  makeHittingTree(+SD,+COMP, +OBS, -TREE)  
-%             -  Determines a hitting tree for the diagnostic problem (SD,COMP,OBS).
+makeChildren(SD, COMP, OBS, LABEL, [EL|REMAINDER], [CHILD|CHILDREN]):-
+   union(LABEL, [EL], NEWLABEL),
+   makeHittingTree(SD, COMP, OBS, NEWLABEL, CHILD),
+   makeChildren(SD, COMP, OBS, LABEL, REMAINDER, CHILDREN).
 
-% We put UNION as HS since this is subtracted in tp
-% Do we need the definition of hittingTree? I think its implicitly defined by makeHittingTree
-
-makeChildren(SD, COMP, OBS, LABEL, []):-
-   tp(SD, COMP, OBS, LABEL, []).
-
-makeChildren(SD, COMP, OBS, LABEL, CHILDREN):-
+% getChildren(+SD, +COMP, +OBS, +LABEL, -CHILDREN)
+%             - Determines the children for a given diagnostic problem and label.
+getChildren(SD, COMP, OBS, LABEL, CHILDREN):-
    % Remove label of parent and generate CS
    tp(SD, COMP, OBS, LABEL, CS),
-   % TODO: call makeHittingTree for each element (el) of CS, where that element is added to the label
-   % for this we need to know whether this child is a leaf or a node, which we dont. 
-   % Prolog might figure it out if we give both options: makeHittingTree(SD, COMP, OBS, leaf(LABEL+el)); makeHittingTree(SD, COMP, OBS, node(A,LABEL+el))
-   .
+   makeChildren(SD, COMP, OBS, LABEL, CS, CHILDREN).
    
+%  makeHittingTree(+SD,+COMP, +OBS, -TREE)  
+%             - Determines a hitting tree for a given diagnostic problem (SD,COMP,OBS).
 
-makeHittingTree(SD, COMP, OBS, leaf(LABEL)):-
-   makeChildren(SD, COMP, OBS, LABEL, []).
+% TODO: check if first run is correct
+makeHittingTree(SD, COMP, OBS, LABEL, node(CHILDREN, LABEL)):-
+   getChildren(SD, COMP, OBS, LABEL, CHILDREN).
 
-makeHittingTree(SD, COMP, OBS, node(CHILDREN, LABEL)):-
-   makeChildren(SD, COMP, OBS, LABEL, CHILDREN).
-
-%====================================
-
-makeHittingTree(SD, COMP, OBS, node([leaf(UNION)], LABEL), [CS]):-
-   union(LABEL, [CS], UNION), 
-   subtract(COMP, UNION, COMPSMALL),
-   tp(SD, COMPSMALL, OBS, [], []).
-makeHittingTree(SD, COMP, OBS, node([node(TREE,UNION)], LABEL), [CS]):-
-   union(LABEL, [CS], UNION),
-   subtract(COMP, UNION, COMPSMALL),
-   tp(SD, COMPSMALL, OBS, [], CSRESULT),
-   makeHittingTree(SD, COMP, OBS, TREE, CSRESULT).
+makeHittingTree(SD, COMP, OBS, LABEL, leaf(LABEL)).
 
 
 %  gatherDiagnoses(+TREE, -D)  
@@ -134,6 +115,10 @@ makeHittingTree(SD, COMP, OBS, node([node(TREE,UNION)], LABEL), [CS]):-
 %  getMinimalDiagnoses(+D, -MD)  
 %             -  Determines a list of minimal diagnoses MD from list of diagnoses D
 
+main(SD, COMP, OBS, TREE):-
+   makeHittingTree(SD, COMP, OBS, [], TREE),
+   !.
+   
 
 
 
