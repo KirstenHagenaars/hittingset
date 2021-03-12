@@ -111,14 +111,44 @@ makeHittingTree(SD, COMP, OBS, LABEL, leaf(LABEL)).
 
 %  gatherDiagnoses(+TREE, -D)  
 %             -  Determines a list of diagnoses D from hittingTree TREE
+gatherDiagnoses(leaf(LABEL),[LABEL]).
+
+gatherDiagnoses(node([CHILD],X),LABEL):-
+   gatherDiagnoses(CHILD, LABEL).
+
+gatherDiagnoses(node([CHILD|CHILDREN],X), ALL):-
+   gatherDiagnoses(CHILD, CHILDLABELS),
+   gatherDiagnoses(node(CHILDREN,Y), CHILDRENLABELS),
+   append(CHILDLABELS, CHILDRENLABELS, ALL).
+
+%  SuperSet(+SET, +REMAINDER)
+%             -  Succeeds if SET is a superset or duplicate of a set within REMAINDER
+
+superSet(X, [HEAD|TAIL]):-
+   subset(HEAD, X).
+
+superSet(X, [HEAD|TAIL]):-
+   superSet(X, TAIL).
 
 %  getMinimalDiagnoses(+D, -MD)  
 %             -  Determines a list of minimal diagnoses MD from list of diagnoses D
 
-main(SD, COMP, OBS, TREE):-
+getMinimalDiagnoses(D, [],[]).
+
+getMinimalDiagnoses(D, [SET|REMAINDER], RESULT):-
+   delete(D, SET, R),   
+   superSet(SET, R),
+   getMinimalDiagnoses(D, REMAINDER, RESULT).
+
+getMinimalDiagnoses(D, [SET|REMAINDER], [SET|RESULT]):-
+   getMinimalDiagnoses(D, REMAINDER, RESULT).
+
+main(SD, COMP, OBS, MD):-
    makeHittingTree(SD, COMP, OBS, [], TREE),
-   !.
-   
+   !,
+   gatherDiagnoses(TREE, D),
+   write(D),
+   getMinimalDiagnoses(D, D, MD).
 
 
 
