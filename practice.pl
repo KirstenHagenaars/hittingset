@@ -102,7 +102,6 @@ getChildren(SD, COMP, OBS, LABEL, CHILDREN):-
 %  makeHittingTree(+SD,+COMP, +OBS, -TREE)  
 %             - Determines a hitting tree for a given diagnostic problem (SD,COMP,OBS).
 
-% TODO: check if first run is correct
 makeHittingTree(SD, COMP, OBS, LABEL, node(CHILDREN, LABEL)):-
    getChildren(SD, COMP, OBS, LABEL, CHILDREN).
 
@@ -121,38 +120,63 @@ gatherDiagnoses(node([CHILD|CHILDREN],X), ALL):-
    gatherDiagnoses(node(CHILDREN,Y), CHILDRENLABELS),
    append(CHILDLABELS, CHILDRENLABELS, ALL).
 
-%  SuperSet(+SET, +REMAINDER)
+%  existsSubset(+SET, +REMAINDER)
 %             -  Succeeds if SET is a superset or duplicate of a set within REMAINDER
 
-superSet(X, [HEAD|TAIL]):-
+existsSubset(X, [HEAD|TAIL]):-
    subset(HEAD, X).
 
-superSet(X, [HEAD|TAIL]):-
-   superSet(X, TAIL).
+existsSubset(X, [HEAD|TAIL]):-
+   existsSubset(X, TAIL).
+
+
+% removeSupersets(+SET, +REMAINDER, -NEWREMAINDER)
+%             -  Removes supersets of SET from REMAINDER
+
+removeSupersets(SET, [], []).
+
+removeSupersets(SET, [HEAD|TAIL], [HEAD|RESULT]):-
+   subset(SET, HEAD),
+   subset(HEAD, SET),
+   removeSupersets(SET, TAIL, RESULT).
+
+removeSupersets(SET, [HEAD|TAIL], RESULT):-
+   subset(SET, HEAD),
+   removeSupersets(SET, TAIL, RESULT).
+
+removeSupersets(SET, [HEAD|TAIL], [HEAD|RESULT]):-
+   removeSupersets(SET, TAIL, RESULT).
 
 %  getMinimalDiagnoses(+D, -MD)  
 %             -  Determines a list of minimal diagnoses MD from list of diagnoses D
 
-getMinimalDiagnoses(D, [],[]).
+getMinimalDiagnoses([],[]).
 
-getMinimalDiagnoses(D, [SET|REMAINDER], RESULT):-
-   delete(D, SET, R),   
-   superSet(SET, R),
-   getMinimalDiagnoses(D, REMAINDER, RESULT).
+getMinimalDiagnoses([SET|REMAINDER], RESULT):-  
+   existsSubset(SET, REMAINDER),
+   removeSupersets(SET, REMAINDER, NEWREMAINDER),
+   getMinimalDiagnoses(NEWREMAINDER, RESULT).
 
-getMinimalDiagnoses(D, [SET|REMAINDER], [SET|RESULT]):-
-   getMinimalDiagnoses(D, REMAINDER, RESULT).
+getMinimalDiagnoses([SET|REMAINDER], [SET|RESULT]):-
+   removeSupersets(SET, REMAINDER, NEWREMAINDER),
+   getMinimalDiagnoses(NEWREMAINDER, RESULT).
 
 main(SD, COMP, OBS, MD):-
    makeHittingTree(SD, COMP, OBS, [], TREE),
-   !,
    gatherDiagnoses(TREE, D),
    write(D),
-   getMinimalDiagnoses(D, D, MD).
+   getMinimalDiagnoses(D, MD),
+   !.
 
+%getMinimalDiagnoses(D, [],[]).
 
+%getMinimalDiagnoses(D, [SET|REMAINDER], RESULT):-
+%   delete(D, SET, R),   
 
+%   superSet(SET, R),
+%   getMinimalDiagnoses(D, REMAINDER, RESULT).
 
-
+%getMinimalDiagnoses(D, [SET|REMAINDER], [SET|RESULT]):-
+%   getMinimalDiagnoses(D, REMAINDER, RESULT).
 
 
