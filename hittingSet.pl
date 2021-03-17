@@ -1,3 +1,6 @@
+% Implementation of hitting set algorithm
+% by: Kirsten Hagenaars s1020609, Andrea Minichová s1021688, Thomas Kolb s1027332
+
 :- [diagnosis].
 
 % makeChildren(+SD, +COMP, +OBS, +LABEL, +CS, -CHILDREN)
